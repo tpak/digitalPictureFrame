@@ -137,7 +137,7 @@ class FlickrPictureFetcher
           #flickr - as long as that is greater than the remaining photos we
           #stick with it - this keeps the number of calls to flickr to the minimum 
           per_page_photo_count = remaining_photos > per_page_photo_count ? per_page_photo_count : remaining_photos
-          GC.start
+          #GC.start
         end
     rescue Exception => ex
       puts ex
