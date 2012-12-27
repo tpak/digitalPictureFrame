@@ -50,3 +50,6 @@ if config[:config_changed] == true
 end
 
 pp config
+
+list   = flickr.photos.getRecent
+pp list

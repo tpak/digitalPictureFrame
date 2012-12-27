@@ -23,7 +23,13 @@
 require 'rubygems'
 require 'flickraw'
 require 'yaml'
+require 'json'
 
+#require 'logger'
+#require 'flickr_logging'
+
+include Logging
+  
 # FlickrAuth uses the gem flickraw to authenticate and authorize
 # against the Flickr API. More info on the Flickr API can be found on the 
 # Flickr services page: http://www.flickr.com/services/api
@@ -43,6 +49,9 @@ module FlickrAuth
   # collect the Flickr _API_KEY_ and _SHARED_SECRET_. Defaults to requesting read
   # permissions.
   def get_flickr_authorization(config)
+    log.debug{'inside get_flickr_authorization'}
+    log.info{"log.level = #{log.level}"}
+    
     config[:config_changed] = true  
     
     # we need the Flickr API key and the Shared Secret 
@@ -66,44 +75,50 @@ module FlickrAuth
     # set permission requested to read only if not otherwise specified
     config[:perms] = 'read' if config[:perms] == nil
 
-    # get frob from Flickr
-    frob = flickr.auth.getFrob
-    # construct url for user to visit to grant us access
-    auth_url = FlickRaw.auth_url :frob => frob, :perms => config[:perms]
-
+    token = flickr.get_request_token
+    auth_url = flickr.get_authorize_url(token['oauth_token'], :perms => config[:perms])
+    
     puts "You must now visit the following Flickr url, log in to Flickr, and authorize this application.\n"+
          "Press enter when you have done so. This should be the only time you will have to do this.\n #{auth_url}"
-    gets
-
+    puts "Copy here the number given when you complete the process."
+    verify = gets.strip
+    
     # get the auth token from Flickr
-    token = flickr.auth.getToken(:frob => frob)
+    token = flickr.get_access_token(token['oauth_token'], token['oauth_token_secret'], verify)
+                
     # double check to make sure it is working
     login = flickr.test.login
-    puts "Now authenticated with Flickr as #{login.username}"
+    log.info("Now authenticated with Flickr as #{login.username}")
     
     # grab all of the info from the token and then store it in our cache file 
     # so we can skip this in the future
-    config[:token] = token.token
-    config[:perms] = token.perms
-    config[:username] = token.user.username
-    config[:fullname] = token.user.fullname
-    config[:nsid] = token.user.nsid        
+    config[:oauth_access_token] = flickr.access_token
+    config[:oauth_access_secret] = flickr.access_secret    
+    config[:username] = login.username
+    config[:nsid] = login.id
+
+
   rescue FlickRaw::FailedResponse => e
-    puts "Authentication failed : #{e.msg}"
+    log.info("Authentication failed : #{e.msg}")
   end
   
   # This is the main method to call. It checks to see if we have a valid Flickr
   # token. If not, it goes through the process of authorizing the user.
   def validate_flickr_credentials(config)  
-    if config[:token] && config[:api_key] && config[:shared_secret]
+    #log.level = Logger::INFO
+    log.debug{"in method #{get_method}"}
+    log.info{"log.level = #{log.level}"}
+    if config[:oauth_access_token] && config[:oauth_access_secret] && config[:api_key] && config[:shared_secret]
       begin
         FlickRaw.api_key=config[:api_key]
         FlickRaw.shared_secret=config[:shared_secret]
-        flickr.auth.checkToken :auth_token => config[:token]
-        puts "Using cached credentials for Flickr user: #{config[:username]}"
+        flickr.access_token=config[:oauth_access_token]
+        flickr.access_secret=config[:oauth_access_secret]
+        flickr.auth.oauth.checkToken :oauth_token => config[:oauth_access_token]
+        log.info{"Using cached credentials for Flickr user: #{config[:username]}"}
       rescue FlickRaw::FailedResponse => e
-        puts "Flickr authentication failed with message : #{e.msg}\n"+
-          "Requesting a new token from Flickr."
+        log.error("Flickr authentication failed with message : #{e.msg}\n"+
+          "Requesting a new token from Flickr.")
         get_flickr_authorization(config)
       end
     else

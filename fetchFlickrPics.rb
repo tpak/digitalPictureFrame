@@ -32,11 +32,15 @@ require 'flickraw'
 require 'open-uri'
 require 'optparse'
 require 'pp'      
+require 'logger'
+require 'thread'
 
+require 'flickr_logging'
 require 'flickr_raw_auth'
 
 class FlickrPictureFetcher
-  include FlickrAuth
+
+  include FlickrAuth 
   
   #
   # program options
@@ -53,6 +57,9 @@ class FlickrPictureFetcher
       end     
       opts.on("--debug", "Set logging level to debug") do
         options[:debug] = true
+        log.level = Logger::DEBUG
+        log.debug('log level now set to DEBUG')
+        log.debug{"log.level = #{log.level}"}
       end
       opts.on("-g", "--getfaves", "Get favorites for username specified") do
         options[:getfaves] = true
@@ -87,6 +94,7 @@ class FlickrPictureFetcher
   #
   def get_photo_list(config, options)
     begin
+        log.debug{"inside #{get_method}"}
         remaining_photos = options[:maxphotos]
         fetched_photos = 0
         available_photos = 1
@@ -100,6 +108,7 @@ class FlickrPictureFetcher
         # find the real flickr user identifier not their username
         # use the one specified on the command line options not in 
         # the credentials, they can be the same but don't need to be
+        log.debug('checking the user name')
         if !options[:getfaves]
           flickr_user = flickr.people.findByUsername( :username => options[:username] ) 
           # override options username b/c flickr may have differnet case rules but finds it
@@ -110,10 +119,11 @@ class FlickrPictureFetcher
         #don't get any more photos than the user asked for or try to get more than are available
         #we assume that there is at least one to allow the loop to run the first time and avoid
         #extra calls to flickr
+        log.debug('getting the photo list')
         while fetched_photos < options[:maxphotos] && available_photos > fetched_photos
           on_page += 1
           if options[:getfaves] == true
-            photo_list = flickr.favorites.getList(:api_key => config[:api_key], :token => config[:token], \
+            photo_list = flickr.favorites.getList(:api_key => config[:api_key], :token => config[:oauth_access_token], \
               :user_id => config[:nsid], :page => on_page, :per_page => per_page_photo_count, \
               :sort => 'date-posted-desc', :extras => "date_upload,date_taken,owner_name" )
           else
@@ -121,6 +131,9 @@ class FlickrPictureFetcher
               :user_id => flickr_user.nsid, :page => on_page, :per_page => per_page_photo_count, \
               :tags => options[:tags], :extras => "date_upload,date_taken,owner_name" )
           end
+          log.debug{'have the photo list now'}
+          log.debug{"photo list = "}
+          log.debug{photo_list.marshal_dump}
           
           # Array.count must be new in ruby 1.8.7? fails on 1.8.6 ....
           # so I changed the following line to be 1.8.6 compatible
@@ -130,19 +143,27 @@ class FlickrPictureFetcher
           remaining_photos = (options[:maxphotos] - fetched_photos)
 
           #combine the fetched results into one big list to hand back
-          complete_photo_list += photo_list      
-
+          #FlickRaw::ResponseList
+          #http://hanklords.github.com/flickraw/FlickRaw/ResponseList.html
+          #for some reason ResponseList does not show up in the object index of rdoc on GitHub 
+          #as of this writing 12/24/2012
+          complete_photo_list += photo_list.to_a      
+          
           #reset the per_page_photo_count if we only need a partial page
           #as per above, per_page_photo count is set to the max allowed by
           #flickr - as long as that is greater than the remaining photos we
           #stick with it - this keeps the number of calls to flickr to the minimum 
           per_page_photo_count = remaining_photos > per_page_photo_count ? per_page_photo_count : remaining_photos
-          #GC.start
+
         end
     rescue Exception => ex
-      puts ex
+      log.info(ex)
       exit
     end
+    
+    log.debug{"complete photo list"}
+    log.debug{complete_photo_list}
+    log.debug{"exiting #{get_method}"}
     return complete_photo_list, options
   end
 
@@ -152,6 +173,7 @@ class FlickrPictureFetcher
   #
   def get_photo_url (photo)
     begin
+      log.debug{"inside #{get_method}"}
       photo_sizes = flickr.photos.getSizes(:photo_id => photo.id)   
       pic_url = nil
       #max_size_label = nil                               
@@ -179,6 +201,7 @@ class FlickrPictureFetcher
   #
   def photo_filename (options, photo, photo_url)
     begin
+      log.debug{"inside #{get_method}"}
       # date upload is passed around as a unix timestamp
       uploaded = Time.at(photo.dateupload.to_i).strftime("%Y%m%d%H%M%S")
 
@@ -216,22 +239,23 @@ class FlickrPictureFetcher
   # Download all the photos in the list we just created
   def download_photos(config, options, photo_list)
     begin
+      log.debug{"inside #{get_method}"}
       files = []
       photo_list.each do |photo|
         photo_url = get_photo_url(photo)
         fileName = photo_filename(options, photo, photo_url)
         if !File.exists?(fileName)
-          puts "Fetching #{photo_url.to_s}"
+          log.info{"Fetching #{photo_url.to_s}"}
           open photo_url do |remote|
             open(fileName, 'wb') { |local| local << remote.read }
           end
           else
-            puts "Skipping duplicate #{photo_url.to_s}"
+            log.info{"Skipping duplicate #{photo_url.to_s}"}
           end
          files << fileName
         end
     rescue Exception => ex
-      puts ex
+      log.error{ex}
       exit
     end
     return files
@@ -240,8 +264,9 @@ class FlickrPictureFetcher
   # get rid of old files
   def cleanup(options, keep_these_files)
     begin
+      log.debug{"inside #{get_method}"}
       # if you need to debug, you might want to sort the file list for easier reading
-      #keep_these_files.sort!.reverse!
+      log.debug{"keep these files = #{keep_these_files.sort!.reverse!}"}
       #p keep_these_files
     
       # get a list of all the files we have, names are slightly different depending
@@ -252,16 +277,14 @@ class FlickrPictureFetcher
         all_files = Dir.glob("#{options[:directory]}/*#{options[:username]}-*.{png,jpg,gif}")
       end
     
-      #all_files.sort!.reverse!
-      #p all_files
-    
       # diff the two sets
       remove_these_files = all_files - keep_these_files
+      log.debug{"removing these files = #{remove_these_files}"}
     
       # delete the unwanted files
       remove_these_files.each {|f| File.delete(f)}
     rescue Exception => ex
-      puts ex
+      log.error{ex}
       exit
     end
   end
@@ -269,15 +292,21 @@ class FlickrPictureFetcher
 end
 
 #
-puts "#{$0} starting with options: #{ARGV}"
+
+log.level = Logger::INFO
+log.info{"#{$0} starting with options: #{ARGV}"}
 
 fetcher = FlickrPictureFetcher.new
+
 options = fetcher.getopts(ARGV)
+log.debug{'command line options ='}
+log.debug{options}
 
 # set default options if otherwise not specified by the user              
 options[:directory] = File.expand_path '~/FlickrDPF' if options[:directory] == nil  
 options[:maxphotos] = 1 if options[:maxphotos] == nil || options[:maxphotos] <= 0
-pp options
+log.info{'running with options ='}
+log.info{options}
 
 # if our photo and credentials cache storage directory doesn't exist, create it 
 `mkdir -p #{options[:directory]}` unless File.exist?(options[:directory])
@@ -294,8 +323,9 @@ config = fetcher.validate_flickr_credentials(config)
 if config[:config_changed] == true
   fetcher.cache_flickr_credentials(token_cache_file, config)
 end
-pp config if options[:debug] == true
-
+#pp config if options[:debug] == true
+log.debug{"config file dump"}
+log.debug{config}
         
 # OK, now we can get the work done - get a list of photos and then retrieve them if
 # they are not already on the computer.
@@ -304,5 +334,5 @@ photo_list, options = fetcher.get_photo_list(config, options)
 files = fetcher.download_photos(config, options, photo_list)
 fetcher.cleanup(options, files)
 
-puts "#{$0} exiting"
+log.info{"#{$0} exiting"}
 exit

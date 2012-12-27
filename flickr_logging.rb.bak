@@ -1,0 +1,26 @@
+module Logging
+
+  def log
+    @log ||= Logging.log_for(self.class.name)
+  end
+
+  def get_method
+    caller[0][/`([^']*)'/, 1]
+  end
+
+  # Use a hash class-ivar to cache a unique Logger per class:
+  @logs = {}
+
+  class << self
+    def log_for(classname)
+      @logs[classname] ||= configure_log_for(classname)
+    end
+
+    def configure_log_for(classname)
+      log = Logger.new(STDOUT)
+      log.progname = classname
+      log
+    end
+  end
+  
+end
