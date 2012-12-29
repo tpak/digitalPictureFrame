@@ -32,7 +32,7 @@ require 'flickraw'
 require 'yaml'
 require 'pp'
 
-require 'flickr_raw_auth'
+require File.dirname(__FILE__) + '/flickr_raw_auth'
 include FlickrAuth
 
 dpf_dir = File.expand_path '~/FlickrDPF'

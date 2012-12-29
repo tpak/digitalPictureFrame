@@ -61,12 +61,10 @@ module FlickrAuth
     # unless the user deltes the cache file we create at the end of this
     if config[:api_key] == nil || config[:shared_secret] == nil
       puts "Please enter the Flickr API Key and press enter:"
-      gets
-      config[:api_key] = chomp
+      config[:api_key] = gets.strip
       
       puts "Please enter the Flickr Shared Secret for the API Key and press enter:"
-      gets
-      config[:shared_secret] = chomp
+      config[:shared_secret] = gets.strip
     end  
 
     FlickRaw.api_key = config[:api_key]

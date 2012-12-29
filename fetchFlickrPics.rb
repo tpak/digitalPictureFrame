@@ -35,8 +35,8 @@ require 'pp'
 require 'logger'
 require 'thread'
 
-require 'flickr_logging'
-require 'flickr_raw_auth'
+require File.dirname(__FILE__) + '/flickr_logging'
+require File.dirname(__FILE__) + '/flickr_raw_auth'
 
 class FlickrPictureFetcher
 
