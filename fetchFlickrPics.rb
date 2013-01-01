@@ -83,7 +83,7 @@ class FlickrPictureFetcher
        
       opts.parse!(args)
     rescue Exception => ex
-      puts ex
+      log.error{ex}
       exit
     end
     return options    
@@ -190,7 +190,7 @@ class FlickrPictureFetcher
       # the "http://" - weird    
       pic_url = pic_url.sub(/ /, '').strip
     rescue Exception => ex
-      puts ex
+      log.error{ex}
       exit
     end
     return pic_url
@@ -230,7 +230,7 @@ class FlickrPictureFetcher
         filename = "#{options[:directory]}/u-#{uploaded}-t-#{taken}-#{photo.ownername}#{photo_path}"
       end
     rescue Exception => ex
-      puts ex
+      log.error{ex}
       exit
     end
     return filename
@@ -241,6 +241,8 @@ class FlickrPictureFetcher
     begin
       log.debug{"inside #{get_method}"}
       files = []
+      skipcount = 0
+      fetchcount = 0 
       photo_list.each do |photo|
         photo_url = get_photo_url(photo)
         fileName = photo_filename(options, photo, photo_url)
@@ -248,9 +250,11 @@ class FlickrPictureFetcher
           log.info{"Fetching #{photo_url.to_s}"}
           open photo_url do |remote|
             open(fileName, 'wb') { |local| local << remote.read }
+          fetchcount += 1
           end
           else
-            log.info{"Skipping duplicate #{photo_url.to_s}"}
+            log.debug{"Skipping duplicate #{photo_url.to_s}"}
+            skipcount += 1
           end
          files << fileName
         end
@@ -258,6 +262,8 @@ class FlickrPictureFetcher
       log.error{ex}
       exit
     end
+    log.info{"fetched #{fetchcount} new pictures"}
+    log.info{"skipped #{skipcount} duplicate pictures"}
     return files
   end
 

@@ -97,15 +97,13 @@ module FlickrAuth
 
 
   rescue FlickRaw::FailedResponse => e
-    log.info("Authentication failed : #{e.msg}")
+    log.error("Authentication failed : #{e.msg}")
   end
   
   # This is the main method to call. It checks to see if we have a valid Flickr
   # token. If not, it goes through the process of authorizing the user.
   def validate_flickr_credentials(config)  
-    #log.level = Logger::INFO
     log.debug{"in method #{get_method}"}
-    log.info{"log.level = #{log.level}"}
     if config[:oauth_access_token] && config[:oauth_access_secret] && config[:api_key] && config[:shared_secret]
       begin
         FlickRaw.api_key=config[:api_key]
