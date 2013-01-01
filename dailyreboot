@@ -1,0 +1,8 @@
+# /etc/cron.d - put this over there so it gets executed - also change 
+# the file owner to root:root
+# 
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+30 3    * * *   root	reboot
