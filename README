@@ -1,25 +1,25 @@
-== flickrDPF
+# flickrDPF
 
-== Author
+## Author
 Chris Tirpak
 
-== Other
+## Other
 
-will fetch photos from flickr
+This utility will fetch photos from flickr.
 
-requires API key and shared secret from flickr
+It requires API key and shared secret from flickr - they are free.
 
-will fetch pictures for a flickr username
+It will fetch pictures for a flickr username
  - can narrow down by tags(s)
  - will get pictures for username with any of those tags
 
-you specify the max number of pics for a username that you want
+You may specify the max number of pics for a username that you want
  - will also get rid of older photos
 
-you can specify fetching favorites
+You can specify fetching favorites
 	- if you do, it ignores username and fetches pics from the username that authorized the picture frame initially
 	
-so for example:
+So for example:
 	- we have users mom, sue, and dave
 	- mom sets up the picture frame
 	- mom gets an api key from flickr
