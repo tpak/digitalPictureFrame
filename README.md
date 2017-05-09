@@ -40,4 +40,6 @@ So for example:
 	- 100 pics total
 	- each time someone adds pics it will download them and bump the old ones off of the back
 	  - in other words its FIFO (first in, first out)
+
+flickrDPF is released under the very permissive [MIT license](LICENSE)
 	
