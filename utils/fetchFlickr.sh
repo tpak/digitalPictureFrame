@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 #
-# run fetchFlickr.rb 
+# run fetchFlickrPics.rb 
 
-FLICKRLOGFILE="/home/dpfuser/bin/fetchFlickr.log"
+FLICKRLOGFILE="~/digitalPictureFrame/log/fetchFlickrPics.log"
 
-#remove the old log file -- uncomment this if you want it removed
+#remove the old log file on every run
 #rm $FLICKRLOGFILE
 
 echo "Starting fetchFlickrPics at: " >> $FLICKRLOGFILE
@@ -21,3 +21,6 @@ export RUBYLIB
 
 echo "End  fetchFlickrPics at: " >> $FLICKRLOGFILE
 date >> $FLICKRLOGFILE
+
+# send the log in an email 
+cat $FLICKRLOGFILE | /usr/bin/mailx -s "$SUBJECT" "$EMAIL" 

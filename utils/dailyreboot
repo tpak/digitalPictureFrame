@@ -1,6 +1,11 @@
 # /etc/cron.d - put this over there so it gets executed - also change 
 # the file owner to root:root
+# it will reboot the picture frame every day at 3:30AM 
 # 
+# use this if the picture frame is being weird and getting hung every couple
+# of days - it seems to clear the cobwebs
+# have not needed this on the raspberry Pi 
+#
 
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
