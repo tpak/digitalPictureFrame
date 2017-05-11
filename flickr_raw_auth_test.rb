@@ -9,7 +9,10 @@ require 'rubygems'
 require 'flickraw'
 require 'yaml'
 require 'pp'
+require 'logger'
+require 'thread'
 
+require File.dirname(__FILE__) + '/flickr_logging'
 require File.dirname(__FILE__) + '/flickr_raw_auth'
 include FlickrAuth
 
@@ -28,6 +31,3 @@ if config[:config_changed] == true
 end
 
 pp config
-
-list   = flickr.photos.getRecent
-pp list
