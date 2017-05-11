@@ -6,7 +6,8 @@
 # Set DISPLAYTIME to number of seconds to display
 # each picture for
 # DISPLAYTIME="300" is 5 minutes
-DISPLAYTIME="15"
+# 
+DISPLAYTIME="6"
 
 # Make sure all output goes to the laptops screen
 export DISPLAY=:0.0
@@ -22,9 +23,13 @@ killall feh
 # based on the order you upload to flickr not the order
 # they appear in your sets, sorry
 #
-# add back --hide-pointer when ready to ship
-#
-nohup feh --quiet --recursive --preload \
+# 12-31-2012
+# add back --hide-pointer option when ready to ship
+# 
+# 5-11-2017
+# remove --preload option - the way we name files means we dont need it
+# and it just burns CPU for a while thinking before starting
+nohup feh --quiet --recursive \
 	--full-screen --auto-zoom \
 	--reverse --sort name --hide-pointer \
 	-D $DISPLAYTIME  ~/FlickrDPF &
