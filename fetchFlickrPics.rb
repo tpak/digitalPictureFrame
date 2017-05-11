@@ -224,7 +224,7 @@ class FlickrPictureFetcher
       photo_list.each do |photo|
         photo_url = get_photo_url(photo)
         fileName = photo_filename(options, photo, photo_url)
-        if !File.exists?(fileName)
+        if !File.exist?(fileName)
           log.info{"Fetching #{photo_url.to_s}"}
           open photo_url do |remote|
             open(fileName, 'wb') { |local| local << remote.read }
@@ -300,7 +300,7 @@ token_cache_file = "#{options[:directory]}/.flickr-token-cache.yml"
 # invocations of the utility, we can fetch different users pictures but we need credentials
 # to do that with - and we can store those across invocations of this utility
 config = {}
-config = YAML::load(File.open(token_cache_file)) if File.exists?(token_cache_file)    
+config = YAML::load(File.open(token_cache_file)) if File.exist?(token_cache_file)    
 config[:perms] = 'read' if config[:perms] == nil   
 
 config = fetcher.validate_flickr_credentials(config)   

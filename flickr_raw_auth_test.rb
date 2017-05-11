@@ -19,7 +19,7 @@ puts "using cache from directory = #{dpf_dir} "
 token_cache_file = "#{dpf_dir}/.flickr-token-cache.yml"
 
 config = {}
-config = YAML::load(File.open(token_cache_file)) if File.exists?(token_cache_file)    
+config = YAML::load(File.open(token_cache_file)) if File.exist?(token_cache_file)    
 config[:perms] = 'read' if config[:perms] == nil   
 
 config = validate_flickr_credentials(config)   
