@@ -31,7 +31,8 @@ class FlickrPictureFetcher
       opts.on("-d", "--directory DIRECTORY",
         "Directory to store downloaded pictures and credentials cache in. " + \
         "The Default is $HOME/FlickrDPF of the invoking user", String) do |dir|
-        options[:directory] = dir
+        #options[:directory] = dir
+        options[:directory] = File.expand_path("..", Dir.pwd)
       end     
       opts.on("--debug", "Set logging level to debug") do
         options[:debug] = true
@@ -280,6 +281,10 @@ end
 log.level = Logger::INFO
 log.info{"#{$0} starting with options: #{ARGV}"}
 
+# where am i and where i smy parent and where are my options 
+dpf_base_dir = File.expand_path("..", Dir.pwd)
+token_cache_file = "#{dpf_base_dir}/.flickr_token_cache.yml"
+
 fetcher = FlickrPictureFetcher.new
 
 options = fetcher.getopts(ARGV)
@@ -287,14 +292,16 @@ log.debug{'command line options ='}
 log.debug{options}
 
 # set default options if otherwise not specified by the user              
-options[:directory] = File.expand_path '~/FlickrDPF' if options[:directory] == nil  
+#options[:directory] = File.expand_path '~/FlickrDPF' if options[:directory] == nil  
+options[:directory] = dpf_base_dir if options[:directory] == nil  
 options[:maxphotos] = 1 if options[:maxphotos] == nil || options[:maxphotos] <= 0
+
 log.info{'running with options ='}
 log.info{options}
 
 # if our photo and credentials cache storage directory doesn't exist, create it 
 `mkdir -p #{options[:directory]}` unless File.exist?(options[:directory])
-token_cache_file = "#{options[:directory]}/.flickr-token-cache.yml"
+#token_cache_file = "#{options[:directory]}/.flickr-token-cache.yml"
 
 # get credentials config - this is different than the options because it is persistent across
 # invocations of the utility, we can fetch different users pictures but we need credentials

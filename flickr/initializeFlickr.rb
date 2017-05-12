@@ -16,10 +16,13 @@ require File.dirname(__FILE__) + '/flickr_logging'
 require File.dirname(__FILE__) + '/flickr_raw_auth'
 include FlickrAuth
 
-dpf_dir = File.expand_path '~/FlickrDPF'
-`mkdir -p #{dpf_dir}` unless File.exist?(dpf_dir)
-puts "using cache from directory = #{dpf_dir} "
-token_cache_file = "#{dpf_dir}/.flickr-token-cache.yml"
+dpf_base_dir = File.expand_path("..", Dir.pwd)
+
+#{}`mkdir -p #{dpf_base_dir}` unless File.exist?(dpf_base_dir)
+
+puts "using or creating token cache in directory = #{dpf_base_dir} "
+token_cache_file = "#{dpf_base_dir}/.flickr_token_cache.yml"
+pp token_cache_file
 
 config = {}
 config = YAML::load(File.open(token_cache_file)) if File.exist?(token_cache_file)    
