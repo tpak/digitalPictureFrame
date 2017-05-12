@@ -5,9 +5,6 @@ require 'flickraw'
 require 'yaml'
 require 'json'
 
-#require 'logger'
-#require 'flickr_logging'
-
 include Logging
   
 # FlickrAuth uses the gem flickraw to authenticate and authorize
