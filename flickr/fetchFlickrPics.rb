@@ -32,7 +32,7 @@ class FlickrPictureFetcher
         "Directory to store downloaded pictures and credentials cache in. " + \
         "The Default is $HOME/FlickrDPF of the invoking user", String) do |dir|
         #options[:directory] = dir
-        options[:directory] = File.expand_path("..", Dir.pwd)
+        options[:directory] = File.expand_path("..", Dir.pwd) + '/Pictures'
       end     
       opts.on("--debug", "Set logging level to debug") do
         options[:debug] = true
