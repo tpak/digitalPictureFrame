@@ -32,5 +32,5 @@ killall feh
 nohup feh --quiet --recursive \
 	--full-screen --auto-zoom \
 	--reverse --sort name --hide-pointer \
-	--slideshow-delay $DISPLAYTIME  ~/FlickrDPF &
+	--slideshow-delay $DISPLAYTIME  ~/digitalPictureFrame/Pictures &
 

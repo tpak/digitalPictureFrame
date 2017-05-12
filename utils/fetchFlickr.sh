@@ -23,4 +23,4 @@ echo "End  fetchFlickrPics at: " >> $FLICKRLOGFILE
 date >> $FLICKRLOGFILE
 
 # send the log in an email 
-cat $FLICKRLOGFILE | /usr/bin/mailx -s "$SUBJECT" "$EMAIL" 
+#cat $FLICKRLOGFILE | /usr/bin/mailx -s "$SUBJECT" "$EMAIL" 
