@@ -30,7 +30,7 @@ class FlickrPictureFetcher
   
       opts.on("-d", "--directory DIRECTORY",
         "Directory to store downloaded pictures and credentials cache in. " + \
-        "The Default is $HOME/FlickrDPF of the invoking user", String) do |dir|
+        "The Default is ../Pictures from this directory", String) do |dir|
         #options[:directory] = dir
         options[:directory] = File.expand_path("..", Dir.pwd) + '/Pictures'
       end     
@@ -293,13 +293,13 @@ log.debug{options}
 
 # set default options if otherwise not specified by the user              
 #options[:directory] = File.expand_path '~/FlickrDPF' if options[:directory] == nil  
-options[:directory] = dpf_base_dir if options[:directory] == nil  
+options[:directory] = dpf_base_dir + '/Pictures' if options[:directory] == nil  
 options[:maxphotos] = 1 if options[:maxphotos] == nil || options[:maxphotos] <= 0
 
 log.info{'running with options ='}
 log.info{options}
 
-# if our photo and credentials cache storage directory doesn't exist, create it 
+# if our photo storage directory doesn't exist, create it 
 `mkdir -p #{options[:directory]}` unless File.exist?(options[:directory])
 #token_cache_file = "#{options[:directory]}/.flickr-token-cache.yml"
 
