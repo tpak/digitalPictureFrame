@@ -31,8 +31,7 @@ class FlickrPictureFetcher
       opts.on("-d", "--directory DIRECTORY",
         "Directory to store downloaded pictures and credentials cache in. " + \
         "The Default is ../Pictures from this directory", String) do |dir|
-        #options[:directory] = dir
-        options[:directory] = File.expand_path("..", Dir.pwd) + '/Pictures'
+        options[:picture_directory] = File.expand_path("..", Dir.pwd) + '/Pictures'
       end     
       opts.on("--debug", "Set logging level to debug") do
         options[:debug] = true
@@ -204,9 +203,9 @@ class FlickrPictureFetcher
       # for more than one user - hey, my mom has a couple of kids that use flickr
       # usualy a bad idea to put intelligence in file names but i am doing it anyway
       if options[:getfaves] == true
-        filename = "#{options[:directory]}/u-#{uploaded}-t-#{taken}-#{photo.ownername}.favorite#{photo_path}"
+        filename = "#{options[:picture_directory]}/u-#{uploaded}-t-#{taken}-#{photo.ownername}.favorite#{photo_path}"
       else
-        filename = "#{options[:directory]}/u-#{uploaded}-t-#{taken}-#{photo.ownername}#{photo_path}"
+        filename = "#{options[:picture_directory]}/u-#{uploaded}-t-#{taken}-#{photo.ownername}#{photo_path}"
       end
     rescue Exception => ex
       log.error{ex}
@@ -257,9 +256,9 @@ class FlickrPictureFetcher
       # get a list of all the files we have, names are slightly different depending
       # on if they are faves or not
       if options[:getfaves] == true
-        all_files = Dir.glob("#{options[:directory]}/*{.favorite}*.{png,jpg,gif}")
+        all_files = Dir.glob("#{options[:picture_directory]}/*{.favorite}*.{png,jpg,gif}")
       else
-        all_files = Dir.glob("#{options[:directory]}/*#{options[:username]}-*.{png,jpg,gif}")
+        all_files = Dir.glob("#{options[:picture_directory]}/*#{options[:username]}-*.{png,jpg,gif}")
       end
     
       # diff the two sets
@@ -292,16 +291,14 @@ log.debug{'command line options ='}
 log.debug{options}
 
 # set default options if otherwise not specified by the user              
-#options[:directory] = File.expand_path '~/FlickrDPF' if options[:directory] == nil  
-options[:directory] = dpf_base_dir + '/Pictures' if options[:directory] == nil  
+options[:picture_directory] = dpf_base_dir + '/Pictures' if options[:picture_directory] == nil  
 options[:maxphotos] = 1 if options[:maxphotos] == nil || options[:maxphotos] <= 0
 
 log.info{'running with options ='}
 log.info{options}
 
 # if our photo storage directory doesn't exist, create it 
-`mkdir -p #{options[:directory]}` unless File.exist?(options[:directory])
-#token_cache_file = "#{options[:directory]}/.flickr-token-cache.yml"
+`mkdir -p #{options[:picture_directory]}` unless File.exist?(options[:picture_directory])
 
 # get credentials config - this is different than the options because it is persistent across
 # invocations of the utility, we can fetch different users pictures but we need credentials
