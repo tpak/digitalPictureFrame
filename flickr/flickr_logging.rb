@@ -10,6 +10,7 @@ module Logging
 
   # Global, memoized, lazy initialized instance of a logger
   def self.logger
+    $stdout.sync = true
     @log ||= Logger.new(STDOUT)
   end
 end
