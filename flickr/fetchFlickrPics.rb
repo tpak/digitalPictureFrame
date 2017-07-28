@@ -1,15 +1,14 @@
 #!/usr/bin/env ruby
 BEGIN {$VERBOSE = true}
 
-
 # http://blog.irisquest.net/2007/06/flickr-photo-collage-ruby
 # must have found some inspiration there back in the day
 
 require 'rubygems'
-require 'flickraw' 
+require 'flickraw'
 require 'open-uri'
 require 'optparse'
-require 'pp'      
+require 'pp'
 require 'logger'
 require 'thread'
 
@@ -18,21 +17,21 @@ require File.dirname(__FILE__) + '/flickr_raw_auth'
 
 class FlickrPictureFetcher
 
-  include FlickrAuth 
-  
+  include FlickrAuth
+
   #
   # program options
   #
   def getopts(args)
     begin
-      opts = OptionParser.new                  
+      opts = OptionParser.new
       options = {}
-  
+
       opts.on("-d", "--directory DIRECTORY",
         "Directory to store downloaded pictures and credentials cache in. " + \
         "The Default is ../Pictures from this directory", String) do |dir|
         options[:picture_directory] = File.expand_path("..", Dir.pwd) + '/Pictures'
-      end     
+      end
       opts.on("--debug", "Set logging level to debug") do
         options[:debug] = true
         log.level = Logger::DEBUG
@@ -43,7 +42,7 @@ class FlickrPictureFetcher
         options[:getfaves] = true
       end
       opts.on("-h", "-?", "--about", "--help", "Show help") do
-        puts opts.to_s    
+        puts opts.to_s
         exit
       end
       opts.on("-m", "--maxphotos MAX",
@@ -53,19 +52,19 @@ class FlickrPictureFetcher
       opts.on("-t", "--tags TAGS",
         "Fetch only photos tagged with tag(s). Seperate tags with a comma.", String) do |t|
         options[:tags] = t
-      end     
-      opts.on("-u", "--username USERNAME", 
-        "Flickr username to retrives pics from.", String) do |usr| 
+      end
+      opts.on("-u", "--username USERNAME",
+        "Flickr username to retrives pics from.", String) do |usr|
           options[:username] =  usr
-      end     
-       
+      end
+
       opts.parse!(args)
     rescue Exception => ex
       log.error{ex}
       exit
     end
-    return options    
-  end                      
+    return options
+  end
 
   #
   # Obtain the the list of photos from Flickr.
@@ -77,18 +76,18 @@ class FlickrPictureFetcher
         fetched_photos = 0
         available_photos = 1
         on_page = 0
-        complete_photo_list = Array.new     
+        complete_photo_list = Array.new
 
         #fetch all the photos at once unless the requested number is greater than
-        #the limit set by flicker - if so we will make multiple 'page' calls to flickr 
+        #the limit set by flicker - if so we will make multiple 'page' calls to flickr
         per_page_photo_count = options[:maxphotos] > FLICKR_PER_PAGE_LIMIT ? FLICKR_PER_PAGE_LIMIT : options[:maxphotos]
 
         # find the real flickr user identifier not their username
-        # use the one specified on the command line options not in 
+        # use the one specified on the command line options not in
         # the credentials, they can be the same but don't need to be
         log.debug('checking the user name')
         if !options[:getfaves]
-          flickr_user = flickr.people.findByUsername( :username => options[:username] ) 
+          flickr_user = flickr.people.findByUsername( :username => options[:username] )
           # override options username b/c flickr may have differnet case rules but finds it
           # we need it for cleaning up files later on
           options[:username] = flickr_user.username
@@ -112,7 +111,7 @@ class FlickrPictureFetcher
           log.debug{'have the photo list now'}
           log.debug{"photo list = "}
           log.debug{photo_list.marshal_dump}
-          
+
           # Array.count must be new in ruby 1.8.7? fails on 1.8.6 ....
           # so I changed the following line to be 1.8.6 compatible
           #fetched_photos += photo_list.count
@@ -123,14 +122,14 @@ class FlickrPictureFetcher
           #combine the fetched results into one big list to hand back
           #FlickRaw::ResponseList
           #http://hanklords.github.com/flickraw/FlickRaw/ResponseList.html
-          #for some reason ResponseList does not show up in the object index of rdoc on GitHub 
+          #for some reason ResponseList does not show up in the object index of rdoc on GitHub
           #as of this writing 12/24/2012
-          complete_photo_list += photo_list.to_a      
-          
+          complete_photo_list += photo_list.to_a
+
           #reset the per_page_photo_count if we only need a partial page
           #as per above, per_page_photo count is set to the max allowed by
           #flickr - as long as that is greater than the remaining photos we
-          #stick with it - this keeps the number of calls to flickr to the minimum 
+          #stick with it - this keeps the number of calls to flickr to the minimum
           per_page_photo_count = remaining_photos > per_page_photo_count ? per_page_photo_count : remaining_photos
 
         end
@@ -138,7 +137,7 @@ class FlickrPictureFetcher
       log.info(ex)
       exit
     end
-    
+
     log.debug{"complete photo list"}
     log.debug{complete_photo_list}
     log.debug{"exiting #{get_method}"}
@@ -147,25 +146,25 @@ class FlickrPictureFetcher
 
   #
   # Get the url for the photo. We call the Flickr getSizes to see
-  # what is available and then pick the largest one 
+  # what is available and then pick the largest one
   #
   def get_photo_url (photo)
     begin
       log.debug{"inside #{get_method}"}
-      photo_sizes = flickr.photos.getSizes(:photo_id => photo.id)   
+      photo_sizes = flickr.photos.getSizes(:photo_id => photo.id)
       pic_url = nil
-      #max_size_label = nil                               
+      #max_size_label = nil
       max_dimension = 0
       photo_sizes.each {|x|
           if max_dimension <= x.width.to_i || max_dimension <= x.height.to_i
-            #max_size_label = x.label   
+            #max_size_label = x.label
             pic_url = x.source
             max_dimension = max_dimension > x.width.to_i ? max_dimension : x.width.to_i
             max_dimension = max_dimension > x.height.to_i ? max_dimension : x.height.to_i
-          end      
+          end
         }
       # Get rid of white space in url. flickraw somehow gets a single whitespace after
-      # the "http://" - weird    
+      # the "http://" - weird
       pic_url = pic_url.sub(/ /, '').strip
     rescue Exception => ex
       log.error{ex}
@@ -187,13 +186,13 @@ class FlickrPictureFetcher
       taken = DateTime.parse(photo.datetaken).strftime("%Y%m%d%H%M%S")
 
 
-      # parse photo url and get path which is comprised of the 
+      # parse photo url and get path which is comprised of the
       # flickr server number, phot id, and photo secret and type
       # where type will be jpg, gif, or png
-      # we'll keep this stuff mostly intact so we have some remote chance 
-      # of troubleshooting later 
+      # we'll keep this stuff mostly intact so we have some remote chance
+      # of troubleshooting later
       photo_uri = URI.parse(photo_url)
-    
+
       # strip slashes out of the path and turn them to dashes for use in file name
       photo_path = photo_uri.path.gsub(/\//,'-')
 
@@ -212,7 +211,7 @@ class FlickrPictureFetcher
       exit
     end
     return filename
-  end 
+  end
 
   # Download all the photos in the list we just created
   def download_photos(config, options, photo_list)
@@ -220,7 +219,7 @@ class FlickrPictureFetcher
       log.debug{"inside #{get_method}"}
       files = []
       skipcount = 0
-      fetchcount = 0 
+      fetchcount = 0
       photo_list.each do |photo|
         photo_url = get_photo_url(photo)
         fileName = photo_filename(options, photo, photo_url)
@@ -252,7 +251,7 @@ class FlickrPictureFetcher
       # if you need to debug, you might want to sort the file list for easier reading
       log.debug{"keep these files = #{keep_these_files.sort!.reverse!}"}
       #p keep_these_files
-    
+
       # get a list of all the files we have, names are slightly different depending
       # on if they are faves or not
       if options[:getfaves] == true
@@ -260,11 +259,11 @@ class FlickrPictureFetcher
       else
         all_files = Dir.glob("#{options[:picture_directory]}/*#{options[:username]}-*.{png,jpg,gif}")
       end
-    
+
       # diff the two sets
       remove_these_files = all_files - keep_these_files
       log.debug{"removing these files = #{remove_these_files}"}
-    
+
       # delete the unwanted files
       remove_these_files.each {|f| File.delete(f)}
     rescue Exception => ex
@@ -280,7 +279,7 @@ end
 log.level = Logger::INFO
 log.info{"#{$0} starting with options: #{ARGV}"}
 
-# where am i and where i smy parent and where are my options 
+# where am i and where i smy parent and where are my options
 dpf_base_dir = File.expand_path("..", Dir.pwd)
 token_cache_file = "#{dpf_base_dir}/.flickr_token_cache.yml"
 
@@ -290,35 +289,35 @@ options = fetcher.getopts(ARGV)
 log.debug{'command line options ='}
 log.debug{options}
 
-# set default options if otherwise not specified by the user              
-options[:picture_directory] = dpf_base_dir + '/Pictures' if options[:picture_directory] == nil  
+# set default options if otherwise not specified by the user
+options[:picture_directory] = dpf_base_dir + '/Pictures' if options[:picture_directory] == nil
 options[:maxphotos] = 1 if options[:maxphotos] == nil || options[:maxphotos] <= 0
 
 log.info{'running with options ='}
 log.info{options}
 
-# if our photo storage directory doesn't exist, create it 
+# if our photo storage directory doesn't exist, create it
 `mkdir -p #{options[:picture_directory]}` unless File.exist?(options[:picture_directory])
 
 # get credentials config - this is different than the options because it is persistent across
 # invocations of the utility, we can fetch different users pictures but we need credentials
 # to do that with - and we can store those across invocations of this utility
 config = {}
-config = YAML::load(File.open(token_cache_file)) if File.exist?(token_cache_file)    
-config[:perms] = 'read' if config[:perms] == nil   
+config = YAML::load(File.open(token_cache_file)) if File.exist?(token_cache_file)
+config[:perms] = 'read' if config[:perms] == nil
 
-config = fetcher.validate_flickr_credentials(config)   
+config = fetcher.validate_flickr_credentials(config)
 if config[:config_changed] == true
   fetcher.cache_flickr_credentials(token_cache_file, config)
 end
 #pp config if options[:debug] == true
 log.debug{"config file dump"}
 log.debug{config}
-        
+
 # OK, now we can get the work done - get a list of photos and then retrieve them if
 # they are not already on the computer.
 FLICKR_PER_PAGE_LIMIT = 500
-photo_list, options = fetcher.get_photo_list(config, options)        
+photo_list, options = fetcher.get_photo_list(config, options)
 files = fetcher.download_photos(config, options, photo_list)
 fetcher.cleanup(options, files)
 
