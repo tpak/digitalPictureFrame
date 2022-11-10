@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 BEGIN {$VERBOSE = true}
 
-# http://blog.irisquest.net/2007/06/flickr-photo-collage-ruby
-# must have found some inspiration there back in the day
-
 require 'rubygems'
 require 'flickraw'
 require 'open-uri'
@@ -93,9 +90,9 @@ class FlickrPictureFetcher
           options[:username] = flickr_user.username
         end
 
-        #don't get any more photos than the user asked for or try to get more than are available
-        #we assume that there is at least one to allow the loop to run the first time and avoid
-        #extra calls to flickr
+        # don't get any more photos than the user asked for or try to get more than are available
+        # we assume that there is at least one to allow the loop to run the first time and avoid
+        # extra calls to flickr
         log.debug('getting the photo list')
         while fetched_photos < options[:maxphotos] && available_photos > fetched_photos
           on_page += 1
@@ -112,24 +109,21 @@ class FlickrPictureFetcher
           log.debug{"photo list = "}
           log.debug{photo_list.marshal_dump}
 
-          # Array.count must be new in ruby 1.8.7? fails on 1.8.6 ....
-          # so I changed the following line to be 1.8.6 compatible
-          #fetched_photos += photo_list.count
           fetched_photos += photo_list.length
           available_photos = photo_list.total.to_i
           remaining_photos = (options[:maxphotos] - fetched_photos)
 
-          #combine the fetched results into one big list to hand back
-          #FlickRaw::ResponseList
-          #http://hanklords.github.com/flickraw/FlickRaw/ResponseList.html
-          #for some reason ResponseList does not show up in the object index of rdoc on GitHub
-          #as of this writing 12/24/2012
+          # combine the fetched results into one big list to hand back
+          # FlickRaw::ResponseList
+          # http://hanklords.github.com/flickraw/FlickRaw/ResponseList.html
+          # for some reason ResponseList does not show up in the object index of rdoc on GitHub
+          # as of this writing 12/24/2012
           complete_photo_list += photo_list.to_a
 
-          #reset the per_page_photo_count if we only need a partial page
-          #as per above, per_page_photo count is set to the max allowed by
-          #flickr - as long as that is greater than the remaining photos we
-          #stick with it - this keeps the number of calls to flickr to the minimum
+          # reset the per_page_photo_count if we only need a partial page
+          # as per above, per_page_photo count is set to the max allowed by
+          # flickr - as long as that is greater than the remaining photos we
+          # stick with it - this keeps the number of calls to flickr to the minimum
           per_page_photo_count = remaining_photos > per_page_photo_count ? per_page_photo_count : remaining_photos
 
         end
@@ -146,8 +140,8 @@ class FlickrPictureFetcher
 
   #
   # Get the url for the photo. We call the Flickr getSizes to see
-  # what is available and then pick the largest one
-  #
+  # what is available and then pick the largest one 
+  # 
   def get_photo_url (photo)
     begin
       log.debug{"inside #{get_method}"}
@@ -184,7 +178,6 @@ class FlickrPictureFetcher
 
       # date taken is passed around as mySQL 'datetime' format
       taken = DateTime.parse(photo.datetaken).strftime("%Y%m%d%H%M%S")
-
 
       # parse photo url and get path which is comprised of the
       # flickr server number, phot id, and photo secret and type
@@ -233,7 +226,7 @@ class FlickrPictureFetcher
             log.debug{"Skipping duplicate #{photo_url.to_s}"}
             skipcount += 1
           end
-         files << fileName
+          files << fileName
         end
     rescue Exception => ex
       log.error{ex}
@@ -279,12 +272,12 @@ end
 log.level = Logger::INFO
 log.info{"#{$0} starting with options: #{ARGV}"}
 
-# where am i and where i smy parent and where are my options
+# where am I and where is my parent and where are my options?
 dpf_base_dir = File.expand_path("..", Dir.pwd)
 token_cache_file = "#{dpf_base_dir}/.flickr_token_cache.yml"
 
-fetcher = FlickrPictureFetcher.new
 
+fetcher = FlickrPictureFetcher.new
 options = fetcher.getopts(ARGV)
 log.debug{'command line options ='}
 log.debug{options}
